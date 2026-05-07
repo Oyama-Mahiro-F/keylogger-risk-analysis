@@ -42,7 +42,6 @@ from detection.process_scanner import ProcessScanner
 from detection.risk_scorer import RiskScorer
 from protection.anti_hook import AntiHookProtection
 from protection.secure_input import SecureInputEngine
-from utils.report_utils import export_to_json, generate_timestamp
 
 
 def print_banner():
@@ -331,9 +330,10 @@ def generate_final_report(sim_stats, detection_results, protection_results):
     # 导出报告
     output_dir = Path(__file__).parent / "output"
     output_dir.mkdir(exist_ok=True)
-    timestamp = generate_timestamp()
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     report_path = output_dir / f"risk_analysis_report_{timestamp}.json"
-    export_to_json(report, str(report_path))
+    with open(report_path, "w", encoding="utf-8") as f:
+        json.dump(report, f, ensure_ascii=False, indent=2, default=str)
 
     print(f"\n  完整报告已保存至: {report_path}")
     print(f"  报告大小: {os.path.getsize(report_path)} bytes")

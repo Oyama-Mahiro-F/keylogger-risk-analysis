@@ -21,7 +21,6 @@
 ```
 keylogger_risk_analysis/
 ├── main.py                     # 入口，调度三个阶段
-├── generate_report.py          # 出 PDF 报告的脚本
 ├── requirements.txt
 │
 ├── risk_simulation/            # 风险模拟
@@ -37,9 +36,6 @@ keylogger_risk_analysis/
 │   ├── anti_hook.py            #   反 Hook 引擎 + 监控线程
 │   └── secure_input.py         #   虚拟键盘 / 输入混淆 / 加密通道
 │
-├── utils/                      # 小工具
-│   └── report_utils.py         #   JSON 导出、时间戳
-│
 └── output/                     # 运行产物
     ├── risk_analysis_report_*.json
     └── 键盘监听风险机理分析与防护验证程序_报告.pdf
@@ -53,7 +49,6 @@ keylogger_risk_analysis/
 cd keylogger_risk_analysis
 pip install -r requirements.txt   # 不装也能跑，会自动降级
 python main.py                    # 运行主程序
-python generate_report.py         # 出 PDF 报告
 ```
 
 pynput 没装的话 Hook 模拟会降级为特征展示模式，psutil 没装的话进程扫描会用模拟数据，不会报错退出。
@@ -175,10 +170,6 @@ psutil 不可用时会返回预置的模拟数据（冒充 svchost.exe 但在 `C
 
 作业最终要交 PDF 报告给老师审阅，不能假设老师的电脑上装了 pynput 和 psutil。程序启动时检查依赖，缺什么就自动切到模拟模式——pynput 没了就展示 API 签名和调用链，psutil 没了就用预置的模拟数据。零配置就能跑，老师不需要折腾环境。
 
-**为什么 PDF 报告用 Python 脚本出而不是 Word/LaTeX？**
-
-fpdf2 是纯 Python 的，不依赖外部程序。老师拿到代码后跑 `python generate_report.py` 就能复现完全一样的 PDF，可以验证报告是代码自动产生的、内容来自运行数据而非手动排版。
-
 **三层架构是不是过度设计了？**
 
 考虑过把所有功能写在一个文件里（更简单），但三个阶段的输入输出都不一样，揉在一起反而不清楚。分开后每个模块可以独立测试，而且报告里"代码开发"那章按模块讲也更顺。
@@ -189,7 +180,7 @@ fpdf2 是纯 Python 的，不依赖外部程序。老师拿到代码后跑 `pyth
 
 | 项目 | 数值 |
 |------|------|
-| Python 文件 | 10 个 |
+| Python 文件 | 8 个 |
 | 核心类 | 8 个 |
 | 总代码量 | ~1,300 行 |
 | Hook API 签名 | 7 个（hook_detector 额外 9 个） |
@@ -250,7 +241,6 @@ fpdf2 是纯 Python 的，不依赖外部程序。老师拿到代码后跑 `pyth
 | 文件 | 说明 |
 |------|------|
 | `main.py` | 主程序入口，三阶段流程调度 |
-| `generate_report.py` | PDF 报告 |
 | `risk_simulation/key_hook.py` | Hook 模拟器 + API 签名库 |
 | `risk_simulation/logger.py` | 窗口关联 + 敏感信息检测 |
 | `detection/hook_detector.py` | 文件扫描 + API 检查 |
@@ -258,4 +248,3 @@ fpdf2 是纯 Python 的，不依赖外部程序。老师拿到代码后跑 `pyth
 | `detection/risk_scorer.py` | 四维度加权评分引擎 |
 | `protection/anti_hook.py` | 反 Hook 引擎 + 防护建议 |
 | `protection/secure_input.py` | 三种安全输入方案 |
-| `utils/report_utils.py` | JSON/文本导出工具 |
