@@ -63,7 +63,7 @@ def print_section(title):
     print(f"{'='*60}")
 
 
-def run_risk_simulation(duration=5):
+def run_risk_simulation():
     """
     第一阶段: 风险模拟
     展示键盘hook如何工作
@@ -94,21 +94,33 @@ def run_risk_simulation(duration=5):
     print(f"  文件特征: {', '.join(sig['file_indicators'][:3])}")
     print(f"  注册表:   {sig['registry_keys'][0]}")
 
-    # 启动键盘Hook模拟 (短暂运行)
-    print(f"\n[1.4] 启动键盘Hook模拟 ({duration}秒)...")
-    print("  [!] 模拟键盘监听中，请勿输入敏感信息...")
-    print("  [!] 此时任何键盘输入都可能被记录")
+    # 启动键盘Hook进行实际演示
+    print(f"\n[1.4] 键盘监听实际演示...")
+    print("-" * 40)
+    print("  [!] 键盘记录器已启动，所有按键都将被秘密记录")
+    print("  [!] 请输入一段文字模拟日常操作（如账号密码），按 Enter 结束演示")
 
     hook = KeyboardHookSimulator(stealth_mode=True)
-    hook.start(duration=duration)
+    started = hook.start(duration=None)  # 手动停止，不限时长
 
-    # 等待模拟完成
-    time.sleep(duration + 1)
-    hook.stop()
+    if started:
+        # 用 getpass 隐藏回显 — 即使屏幕不显示，键盘记录器依然能捕获
+        from getpass import getpass
+        getpass("  [输入区域] > ")
+        hook.stop()
+    else:
+        # pynput 不可用，走特征展示模式
+        print("  [!] pynput 未安装，切换为特征展示模式")
+        print("  [模拟记录] 用户按键序列 → hook 回调 → 日志文件")
+        time.sleep(1)
+        hook.stop()
+        stats = hook.get_stats()
+        return hook, stats
 
     stats = hook.get_stats()
+    print(f"\n[1.5] 键盘Hook运行统计:")
+    print("-" * 40)
     if stats:
-        print(f"\n[1.5] 键盘Hook运行统计:")
         print(f"  运行时长: {stats['duration_seconds']} 秒")
         print(f"  捕获按键: {stats['keys_captured']} 次")
         print(f"  按键速率: {stats['keys_per_second']} 次/秒")
@@ -120,10 +132,17 @@ def run_risk_simulation(duration=5):
     if log_file.exists():
         with open(log_file, 'r', encoding='utf-8') as f:
             lines = f.readlines()
-            print(f"\n  日志文件内容 (最近5条):")
-            for line in lines[-5:]:
+        if lines:
+            print(f"\n  [→] 键盘记录器实际捕获的内容:")
+            print(f"  {'─' * 40}")
+            for line in lines[-10:]:
                 entry = json.loads(line)
                 print(f"    [{entry['timestamp']}] 按键: {entry['key']}")
+            print(f"  {'─' * 40}")
+            print(f"  [!] 共记录 {len(lines)} 条按键记录，已保存至隐蔽日志文件")
+            print(f"  [!] 攻击者可通过此日志还原你的完整输入内容")
+        else:
+            print(f"\n  (未检测到按键输入)")
 
     return hook, stats
 
@@ -376,7 +395,7 @@ def main():
     # ========================================
     # 第一阶段: 风险模拟
     # ========================================
-    hook, sim_stats = run_risk_simulation(duration=3)
+    hook, sim_stats = run_risk_simulation()
 
     # ========================================
     # 第二阶段: 检测识别
