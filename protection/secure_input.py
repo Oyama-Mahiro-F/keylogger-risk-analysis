@@ -9,6 +9,7 @@
 每种方案都提供可测量的防护效果对比
 """
 
+import os
 import random
 import hashlib
 import base64

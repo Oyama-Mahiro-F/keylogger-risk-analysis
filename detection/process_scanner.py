@@ -66,13 +66,13 @@ class ProcessScanner:
         if not HAS_PSUTIL:
             return self._simulate_scan()
 
-        for proc in psutil.process_iter(['pid', 'name', 'exe', 'cmdline', 'cpu_percent']):
+        for proc in psutil.process_iter(['pid', 'name', 'exe', 'cmdline']):
             try:
                 result = self._analyze_process(proc)
                 if result["suspicious"]:
                     self.suspicious_processes.append(result)
                 self.scan_results.append(result)
-            except (psutil.NoSuchProcess, psutil.AccessDenied):
+            except (psutil.NoSuchProcess, psutil.AccessDenied, PermissionError):
                 continue
 
         return self._generate_report()
@@ -101,9 +101,9 @@ class ProcessScanner:
 
         # 检查CPU使用率异常（键盘记录器通常CPU占用低，持续高CPU才可疑）
         try:
-            cpu = proc.cpu_percent(interval=0.1)
+            cpu = proc.cpu_percent(interval=0)
             if cpu > 80:
-                result["risk_factors"].append(f"CPU使用率持续异常: {cpu}%")
+                result["risk_factors"].append(f"CPU使用率持续异常: {cpu:.0f}%")
                 result["risk_score"] += 5
             result["cpu_percent"] = cpu
         except Exception:
