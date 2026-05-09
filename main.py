@@ -135,7 +135,7 @@ def run_risk_simulation():
         if lines:
             print(f"\n  [→] 键盘记录器实际捕获的内容:")
             print(f"  {'─' * 40}")
-            for line in lines[-10:]:
+            for line in lines:
                 entry = json.loads(line)
                 print(f"    [{entry['timestamp']}] 按键: {entry['key']}")
             print(f"  {'─' * 40}")
